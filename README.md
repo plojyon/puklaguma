@@ -12,7 +12,7 @@ TODO: support voice calls
 ## Usage
 
 ```bash
-python -m virtualenv venv && venv/bin/activate  # (Optional)
+python -m virtualenv venv && source venv/bin/activate  # (Optional)
 pip install -r requirements.txt
 echo "00386123123" > admin_number.env  # Used to send a test SMS on startup
 echo "xxxxxxx" > token.env  # Discord API token
