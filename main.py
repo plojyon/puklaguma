@@ -3,8 +3,9 @@ import re
 import sys
 import time
 from logging.handlers import RotatingFileHandler
-import fire
+
 import discord
+import fire
 
 import LTE
 
@@ -40,7 +41,13 @@ except FileNotFoundError:
     logger.warning("admin_number.env not found. Test SMS will not be sent.")
 WELCOME_MESSAGE = "It's time for a pit stop, Pukla guma reporting for duty!"
 
+# Secret prefix
 MAGIC_PREFIX = "$"
+try:
+    with open("magic_prefix.env") as file:
+        MAGIC_PREFIX = file.read().strip()
+except FileNotFoundError:
+    logger.warning("magic_prefix.env not found. Using default prefix '$'.")
 
 
 def get_phone_number(message):
@@ -67,7 +74,7 @@ def get_content(message):
     content = message.content
     if not content.startswith(MAGIC_PREFIX):
         return None
-    content = content[len(MAGIC_PREFIX):]
+    content = content[len(MAGIC_PREFIX) :]
 
     ascii_only = re.sub(r"[^\x00-\x7F]+", "", content)
     limit = 160
@@ -136,12 +143,12 @@ class Bot:
     def check(self):
         """Run a health check on the LTE module."""
         LTE.health_check()
-    
+
     def test(self, message=WELCOME_MESSAGE, recipient=ADMIN_NUMBER):
         """Send a test SMS to the admin number."""
         logger.info(f"Sending test SMS '{message}' to {recipient}")
         LTE.send_sms(recipient, message)
-    
+
     def at(self, command):
         """Send an AT command to the LTE module."""
         logger.info(f"Sending AT command '{command}'")
@@ -160,4 +167,3 @@ class Bot:
 
 if __name__ == "__main__":
     fire.Fire(Bot)
-

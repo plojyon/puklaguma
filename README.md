@@ -16,6 +16,7 @@ python -m virtualenv venv && venv/bin/activate  # (Optional)
 pip install -r requirements.txt
 echo "00386123123" > admin_number.env  # Used to send a test SMS on startup
 echo "xxxxxxx" > token.env  # Discord API token
+echo "$" > magic_prefix.env  # Prefix for sending SMS (default: $, keep secret if using webhooks)
 python main.py on  # Power the LTE module (if not manually powered)
 python main.py unlock 1234  # Unlock SIM card (if not already unlocked)
 python main.py run  # Start the discord bot
