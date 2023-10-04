@@ -32,13 +32,15 @@ intents.messages = True
 client = discord.Client(intents=intents)
 
 # Test SMS
-admin_number = None
+ADMIN_NUMBER = None
 try:
     with open("admin_number.env") as file:
-        admin_number = file.read().strip()
+        ADMIN_NUMBER = file.read().strip()
 except FileNotFoundError:
     logger.warning("admin_number.env not found. Test SMS will not be sent.")
-welcome_message = "It's time for a pit stop, Pukla guma reporting for duty!"
+WELCOME_MESSAGE = "It's time for a pit stop, Pukla guma reporting for duty!"
+
+MAGIC_PREFIX = "$"
 
 
 def get_phone_number(message):
@@ -59,13 +61,13 @@ def get_phone_number(message):
 def get_content(message):
     """Validate message content.
 
-    Limit content to 160 (or 70) characters and strip leading $.
+    Limit content to 160 (or 70) characters and strip leading MAGIC_PREFIX.
     Return None if invalid.
     """
     content = message.content
-    if not content.startswith("$"):
+    if not content.startswith(MAGIC_PREFIX):
         return None
-    content = content[1:]
+    content = content[len(MAGIC_PREFIX):]
 
     ascii_only = re.sub(r"[^\x00-\x7F]+", "", content)
     limit = 160
@@ -105,7 +107,7 @@ async def on_message(message):
     if content is None:
         logger.warning("Invalid message content")
         await message.channel.send(
-            "Messages in SMS channels must start with '$' and be at most 160 characters long (70 if non-ascii)."
+            f"Messages in SMS channels must start with '{MAGIC_PREFIX}' and be at most 160 characters long (70 if non-ascii)."
         )
         return
 
@@ -120,28 +122,35 @@ async def on_message(message):
 
 class Bot:
     def on(self):
+        """Turn on LTE module."""
         LTE.power_on()
 
     def unlock(self, pin):
+        """Unlock SIM card."""
         LTE.unlock_pin(pin)
 
     def off(self):
+        """Turn off LTE module."""
         LTE.power_off()
 
     def check(self):
+        """Run a health check on the LTE module."""
         LTE.health_check()
     
-    def test(self, message=welcome_message, recipient=admin_number):
+    def test(self, message=WELCOME_MESSAGE, recipient=ADMIN_NUMBER):
+        """Send a test SMS to the admin number."""
         logger.info(f"Sending test SMS '{message}' to {recipient}")
         LTE.send_sms(recipient, message)
     
     def at(self, command):
+        """Send an AT command to the LTE module."""
         logger.info(f"Sending AT command '{command}'")
         LTE.send_at(command, "OK", 10)
 
     def run(self):
+        """Run the Discord bot."""
         LTE.health_check()
-        if admin_number is not None:
+        if ADMIN_NUMBER is not None:
             self.test()
 
         with open("token.env") as file:
